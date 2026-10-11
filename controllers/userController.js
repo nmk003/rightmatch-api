@@ -231,7 +231,6 @@ export const createUser = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const { search, city } = req.query;
-    
 
     const serverResponse = await sql`SELECT * FROM users
     WHERE firstname ILike ${search}`;
@@ -335,28 +334,6 @@ export const updateUser = async (req, res) => {
       message: "User Updated Successfully",
       data: serverResponse[0],
     });
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-    });
-  }
-};
-
-export const getFilteredUsers = async (req, res) => {
-  try {
-    const serverResponse = await sql`SELECT * FROM users`;
-    if (serverResponse.count > 0) {
-      return res.status(200).json({
-        success: true,
-        data: serverResponse,
-      });
-    } else {
-      return res.status(404).json({
-        success: true,
-        message: "No Data Found",
-        data: serverResponse,
-      });
-    }
   } catch (error) {
     return res.status(500).json({
       error: error.message,
