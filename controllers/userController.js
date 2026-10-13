@@ -232,8 +232,7 @@ export const getUsers = async (req, res) => {
   try {
     const { search, city } = req.query;
 
-    const serverResponse = await sql`SELECT * FROM users
-    WHERE firstname ILike ${search}`;
+    const serverResponse = await sql`SELECT * FROM users`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
         success: true,
