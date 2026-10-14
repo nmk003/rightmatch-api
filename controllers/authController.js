@@ -90,7 +90,7 @@ export const Signin = async (req, res) => {
         { phone: user[0].phone, password: user[0].password },
         "accesstoken-secret-key",
         {
-          expiresIn: "1m",
+          expiresIn: "15m",
           algorithm: "HS256",
         },
       );

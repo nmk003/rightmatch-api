@@ -62,7 +62,7 @@ const isValidDob = (dob) => {
   );
 };
 
-export const createUser = async (req, res) => {
+export const createMatch = async (req, res) => {
   try {
     if (userSchema.safeParse(req.body).success) {
       const id = uuidv4();
@@ -75,7 +75,7 @@ export const createUser = async (req, res) => {
         String(month).padStart(2, "0") +
         String(date).padStart(2, "0");
 
-      const usersServerResponse = await sql`SELECT * FROM users
+      const usersServerResponse = await sql`SELECT * FROM matches
       WHERE createdate >= ${Number(formatDate)}`;
 
       let userid = `RM${year}${month}${date}${usersServerResponse.count + 1}`;
@@ -228,11 +228,11 @@ export const createUser = async (req, res) => {
   }
 };
 
-export const getUsers = async (req, res) => {
+export const getMatches = async (req, res) => {
   try {
-    const { search, city } = req.query;
+    //const { search, city } = req.query;
 
-    const serverResponse = await sql`SELECT * FROM users`;
+    const serverResponse = await sql`SELECT * FROM matches`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
         success: true,
@@ -252,7 +252,7 @@ export const getUsers = async (req, res) => {
   }
 };
 
-export const getUser = async (req, res) => {
+export const getMatch = async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -261,7 +261,7 @@ export const getUser = async (req, res) => {
         message: "Please provide a valid id",
       });
     }
-    const serverResponse = await sql`SELECT * FROM users where id = ${id}`;
+    const serverResponse = await sql`SELECT * FROM matches where id = ${id}`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
         success: true,
@@ -281,7 +281,7 @@ export const getUser = async (req, res) => {
   }
 };
 
-export const updateUser = async (req, res) => {
+export const updateMatch = async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -315,7 +315,7 @@ export const updateUser = async (req, res) => {
     }
 
     const serverResponse = await sql`
-      UPDATE users
+      UPDATE matches
       SET ${sql(updates)}
       WHERE id = ${id}
       RETURNING *
