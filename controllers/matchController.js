@@ -7,14 +7,14 @@ const userSchema = z.object({
   surname: z.string({ message: "Surname is required" }).nonempty(),
   dob: z.string({ message: "DOB is required" }).nonempty(),
   gender: z.string({ message: "Gender is required" }).min(1).nonempty(),
-  rasi: z.string({ message: "Rasi is required" }).nonempty(),
-  nakshatram: z.string({ message: "Nakshatram is required" }).nonempty(),
-  gothram: z.string({ message: "Gothram is required" }).nonempty(),
+  zodaicsign: z.string({ message: "Zodaic Sign is required" }).nonempty(),
+  star: z.string({ message: "Star is required" }).nonempty(),
+  //gothram: z.string({ message: "Gothram is required" }).nonempty(),
   caste: z.string({ message: "Caste is required" }).nonempty(),
   subcaste: z.string({ message: "Subcaste is required" }).nonempty(),
   occupation: z.string({ message: "Occupation is required" }).nonempty(),
   company: z.string({ message: "Company is required" }).nonempty(),
-  salary: z.number({ message: "Salary is required" }).nonnegative(),
+  salary: z.string({ message: "Salary is required" }).nonempty(),
 });
 
 const updateUserSchema = z
@@ -24,8 +24,8 @@ const updateUserSchema = z
     surname: z.string().optional(),
     dob: z.string().optional(),
     gender: z.string().optional(),
-    rasi: z.string().optional(),
-    nakshatram: z.string().optional(),
+    zodaicsign: z.string().optional(),
+    star: z.string().optional(),
     religion: z.string().optional(),
     gothram: z.string().optional(),
     caste: z.string().optional(),
@@ -63,6 +63,7 @@ const isValidDob = (dob) => {
 };
 
 export const createMatch = async (req, res) => {
+  console.log(res.body);
   try {
     if (userSchema.safeParse(req.body).success) {
       const id = uuidv4();
@@ -76,21 +77,22 @@ export const createMatch = async (req, res) => {
         String(date).padStart(2, "0");
 
       const usersServerResponse = await sql`SELECT * FROM matches
-      WHERE createdate >= ${Number(formatDate)}`;
+      WHERE createdat >= ${Number(formatDate)}`;
 
-      let userid = `RM${year}${month}${date}${usersServerResponse.count + 1}`;
+      const userid = `RM${year}${month}${date}${usersServerResponse.count + 1}`;
 
-      const createdate = new Date();
+      const createdat = new Date();
       const {
         firstname,
-        lastname,
+        lastname = null,
         surname,
         dob,
         gender,
-        rasi,
-        nakshatram,
+        zodaicsign,
+        star,
         religion,
         gothram,
+        padam,
         caste,
         subcaste,
         occupation,
@@ -98,6 +100,7 @@ export const createMatch = async (req, res) => {
         salary,
         currency,
         mothername,
+        worklocation,
         motheroccupation,
         fathername,
         fatheroccupation,
@@ -110,6 +113,9 @@ export const createMatch = async (req, res) => {
         currentaddress,
         iscurrentaspemanent,
         permanentaddress,
+        isactive,
+        color,
+        height,
       } = req.body;
 
       if (!isValidDob(dob)) {
@@ -118,74 +124,56 @@ export const createMatch = async (req, res) => {
         });
       }
 
-      // await sql`CREATE TABLE users(
-      // id UUID PRIMARY KEY NOT NULL,
-      // userid VARCHAR(100) NOT NULL,
-      // firstname VARCHAR(100),
-      // lastname VARCHAR(100),
-      // surname VARCHAR(100) NOT NULL,
-      // dob DATE NOT NULL,
-      // rasi VARCHAR(100) NOT NULL,
-      // nakshatram VARCHAR(100) NOT NULL,
-      // religion VARCHAR(100) NOT NULL,
-      // gothram VARCHAR(100) NOT NULL,
-      // caste VARCHAR(100) NOT NULL,
-      // subcaste VARCHAR(100) NOT NULL,
-      // occupation VARCHAR(100) NOT NULL,
-      // company VARCHAR(100) NOT NULL,
-      // salary INT NOT NULL,
-      // currency CHAR(10),
-      // mothername VARCHAR(100),
-      // motheroccupation VARCHAR(100),
-      // fathername VARCHAR(100),
-      // fatheroccupation VARCHAR(100),
-      // sisters CHAR(5),
-      // numofsisters INT,
-      // marriedsisters INT,
-      // brothers CHAR(5),
-      // numofbrothers INT,
-      // marriedbrothers INT
-      // )`;
-
-      const serverReponse = await sql`INSERT INTO users(
+      const serverReponse = await sql`INSERT INTO matches(
       id, 
       userid, 
       firstname, 
       lastname, 
-      surname, 
+      surname,
+      gender, 
       dob,
-      gender,
-      rasi, 
-      nakshatram, 
+      color,
+      height,
+      zodaicsign,
+      star,
+      padam,
       religion, 
-      gothram, 
+      gothram,
       caste, 
-      subcaste, 
+      subcaste,
       occupation, 
       company, 
       salary, 
       currency,
-      mothername, motheroccupation, fathername, fatheroccupation,
+      worklocation,
+      mothername, 
+      motheroccupation, 
+      fathername, 
+      fatheroccupation,
       sisters,
       numofsisters,
       marriedsisters,
       brothers,
       numofbrothers,
       marriedbrothers,
-      createdate,
+      isactive,
       currentaddress,
+      permanentaddress,
       iscurrentaspemanent,
-      permanentaddress
+      createdat
       ) VALUES(
        ${id}, 
        ${userid}, 
        ${firstname}, 
        ${lastname}, 
        ${surname},
-       ${dob},
        ${gender},
-       ${rasi},
-       ${nakshatram},
+       ${dob},
+       ${color},
+       ${height},
+       ${zodaicsign},
+       ${star},
+       ${padam},
        ${religion},
        ${gothram},
        ${caste},
@@ -194,6 +182,7 @@ export const createMatch = async (req, res) => {
        ${company},
        ${salary},
        ${currency},
+       ${worklocation},
        ${mothername},
        ${motheroccupation},
        ${fathername},
@@ -204,9 +193,11 @@ export const createMatch = async (req, res) => {
        ${brothers},
        ${numofbrothers},
        ${marriedbrothers},
-       ${createdate}, 
+       ${isactive},
        ${currentaddress}, 
-       ${iscurrentaspemanent}, ${iscurrentaspemanent ? currentaddress : permanentaddress}) RETURNING (userid)`;
+       ${iscurrentaspemanent ? currentaddress : permanentaddress},
+       ${iscurrentaspemanent},
+       ${createdat}) RETURNING (userid)`;
 
       if (serverReponse.count > 0) {
         return res.status(201).json({
