@@ -11,7 +11,7 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://rightmatch-api.onrender.com",
+  "https://rightmatch-ui.onrender.com",
 ];
 
 app.use(
