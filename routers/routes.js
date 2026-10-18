@@ -1,6 +1,6 @@
 import express from "express";
 import { generateOTP, verifyOTP } from "../controllers/otpController.js";
-import { Signin, Signup } from "../controllers/authController.js";
+import { Signin, Signup, Users } from "../controllers/authController.js";
 import { authMiddleware } from "../authMiddleware.js";
 import {
   createMatch,
@@ -20,5 +20,6 @@ router.put("/match/:id", updateMatch);
 
 router.post("/auth/signup", Signup);
 router.post("/auth/signin", Signin);
+router.get("/auth/users", Users);
 
 export default router;

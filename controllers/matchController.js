@@ -9,7 +9,7 @@ const userSchema = z.object({
   gender: z.string({ message: "Gender is required" }).min(1).nonempty(),
   zodaicsign: z.string({ message: "Zodaic Sign is required" }).nonempty(),
   star: z.string({ message: "Star is required" }).nonempty(),
-  //gothram: z.string({ message: "Gothram is required" }).nonempty(),
+  gothram: z.string({ message: "Gothram is required" }).nonempty(),
   caste: z.string({ message: "Caste is required" }).nonempty(),
   subcaste: z.string({ message: "Subcaste is required" }).nonempty(),
   occupation: z.string({ message: "Occupation is required" }).nonempty(),
@@ -63,7 +63,6 @@ const isValidDob = (dob) => {
 };
 
 export const createMatch = async (req, res) => {
-  console.log(res.body);
   try {
     if (userSchema.safeParse(req.body).success) {
       const id = uuidv4();
@@ -84,7 +83,7 @@ export const createMatch = async (req, res) => {
       const createdat = new Date();
       const {
         firstname,
-        lastname = null,
+        lastname,
         surname,
         dob,
         gender,

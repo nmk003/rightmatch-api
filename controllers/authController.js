@@ -37,10 +37,9 @@ export const Signup = async (req, res) => {
         await sql`INSERT INTO users(id, phone, fullname, password, countrycode, createdat) 
       VALUES(${id}, ${phone}, ${fullname}, ${hashedPassword}, ${countrycode}, ${createdat}) RETURNING *`;
       if (signupResponse.count > 0) {
-        return res.status(200).json({
+        return res.status(201).json({
           success: true,
-          message: "Signup Successfully",
-          userid: signupResponse[0].userid,
+          message: "User Created Successfully",
         });
       }
     } else {
@@ -122,6 +121,29 @@ export const Signin = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
+      error: error.message,
+    });
+  }
+};
+
+export const Users = async (req, res) => {
+  try {
+    const usersResponse = await sql`SELECT * FROM users`;
+    if (usersResponse.count > 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Users Fetched Successfully",
+        data: usersResponse,
+      });
+    } else {
+      return res.status(404).json({
+        success: true,
+        message: "No Users Data",
+        data: usersResponse,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
       error: error.message,
     });
   }

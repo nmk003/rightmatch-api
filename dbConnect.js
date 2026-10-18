@@ -3,11 +3,12 @@ import postgres from "postgres";
 // dotenv.config();
 
 export const sql = postgres({
-  host: "localhost",
+  host: "dpg-dba7juvbtjjs73e43f2g-a.oregon-postgres.render.com",
   port: 5432,
-  database: "rightmatch",
-  username: "postgres",
-  password: "postgres",
+  database: "rightmatch_db",
+  username: "rightmatch_db_user",
+  password: "V75smDRrNQ5rHZOGsoMGVd1LGVmhw0EQ",
+  ssl: "require",
 });
 
 export const databseConnect = async () => {
