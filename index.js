@@ -9,7 +9,19 @@ dotenv.config();
 const app = express();
 app.use(cookieParser());
 app.use(bodyParser.json());
-app.use(cors({ origin: "https://rightmatch-ui.onrender.com/", credentials: true }));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://rightmatch-api.onrender.com",
+];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 const PORT = 5045;
 
