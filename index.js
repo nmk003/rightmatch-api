@@ -9,7 +9,7 @@ dotenv.config();
 const app = express();
 app.use(cookieParser());
 app.use(bodyParser.json());
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: "https://rightmatch-ui.onrender.com/", credentials: true }));
 
 const PORT = 5045;
 
