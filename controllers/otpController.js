@@ -20,10 +20,9 @@ export const generateOTP = async (req, res) => {
 };
 
 export const verifyOTP = async (req, res) => {
+  const enteredOtp = req.params.otp;
+  const otp = req.headers.cookie.split("=")[1];
   try {
-    const enteredOtp = req.params.otp;
-    const { otp } = req.cookies;
-    console.log(otp, enteredOtp);
     if (otp !== enteredOtp) {
       return res.status(400).json({
         success: false,
