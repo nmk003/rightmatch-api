@@ -94,16 +94,16 @@ export const Signin = async (req, res) => {
         },
       );
       res.cookie("access-token", accessToken, {
-        httpOnly: false,
+        httpOnly: true,
         maxAge: 15 * 60 * 1000,
         path: "/",
-        secure: false,
+        secure: true,
       });
       res.cookie("refresh-token", refreshToken, {
-        httpOnly: false,
+        httpOnly: true,
         maxAge: 7 * 24 * 60 * 1000,
         path: "/",
-        secure: false,
+        secure: true,
       });
       const loginUser =
         await sql`SELECT id, fullname, phone, email, gender, role FROM users
