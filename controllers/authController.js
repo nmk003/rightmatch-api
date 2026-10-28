@@ -106,7 +106,7 @@ export const Signin = async (req, res) => {
         secure: false,
       });
       const loginUser =
-        await sql`SELECT id, full_name, phone, email, gender, role FROM users
+        await sql`SELECT id, fullname, phone, email, gender, role FROM users
         WHERE phone = ${phone}`;
       return res.status(200).json({
         success: true,
