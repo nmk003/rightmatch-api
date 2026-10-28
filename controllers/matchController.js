@@ -45,7 +45,7 @@ const updateUserSchema = z
     numofbrothers: z.number().optional(),
     marriedbrothers: z.number().optional(),
     currentaddress: z.string().optional(),
-    iscurrentaspemanent: z.boolean().optional(),
+    iscurrentaspermanent: z.boolean().optional(),
     permanentaddress: z.string().optional(),
   })
   .strict();
@@ -65,7 +65,6 @@ const isValidDob = (dob) => {
 export const createMatch = async (req, res) => {
   try {
     if (userSchema.safeParse(req.body).success) {
-      const id = uuidv4();
       let year = new Date().getFullYear();
       let month = new Date().getMonth() + 1;
       let date = new Date().getDate();
@@ -76,12 +75,12 @@ export const createMatch = async (req, res) => {
         String(date).padStart(2, "0");
 
       const usersServerResponse = await sql`SELECT * FROM matches
-      WHERE createdat >= ${Number(formatDate)}`;
+      WHERE created_at >= ${Number(formatDate)}`;
 
-      const userid = `RM${year}${month}${date}${usersServerResponse.count + 1}`;
+      const profileid = `RM${year}${month}${date}${usersServerResponse.count + 1}`;
 
-      const createdat = new Date();
       const {
+        userid,
         firstname,
         lastname,
         surname,
@@ -110,7 +109,7 @@ export const createMatch = async (req, res) => {
         numofbrothers,
         marriedbrothers,
         currentaddress,
-        iscurrentaspemanent,
+        iscurrentaspermanent,
         permanentaddress,
         isactive,
         color,
@@ -124,8 +123,8 @@ export const createMatch = async (req, res) => {
       }
 
       const serverReponse = await sql`INSERT INTO matches(
-      id, 
-      userid, 
+      user_id,
+      profile_id,
       firstname, 
       lastname, 
       surname,
@@ -158,11 +157,9 @@ export const createMatch = async (req, res) => {
       isactive,
       currentaddress,
       permanentaddress,
-      iscurrentaspemanent,
-      createdat
-      ) VALUES(
-       ${id}, 
+      iscurrentaspermanent) VALUES(
        ${userid}, 
+       ${profileid}, 
        ${firstname}, 
        ${lastname}, 
        ${surname},
@@ -194,15 +191,14 @@ export const createMatch = async (req, res) => {
        ${marriedbrothers},
        ${isactive},
        ${currentaddress}, 
-       ${iscurrentaspemanent ? currentaddress : permanentaddress},
-       ${iscurrentaspemanent},
-       ${createdat}) RETURNING (userid)`;
+       ${iscurrentaspermanent ? permanentaddress : currentaddress},
+       ${iscurrentaspermanent}) RETURNING (profile_id)`;
 
       if (serverReponse.count > 0) {
         return res.status(201).json({
           success: true,
           message: "User Created Successfully",
-          userid: serverReponse[0].userid,
+          profileid: serverReponse[0].profile_id,
         });
       }
     } else {
@@ -220,16 +216,18 @@ export const createMatch = async (req, res) => {
 
 export const getMatches = async (req, res) => {
   try {
-    //const { search, city } = req.query;
+    const { gender } = req.query;
+    const _gen = gender === "male" ? "female" : "male";
 
-    const serverResponse = await sql`SELECT * FROM matches`;
+    const serverResponse =
+      await sql`SELECT * FROM matches where gender = ${_gen}`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
         success: true,
         data: serverResponse,
       });
     } else {
-      return res.status(404).json({
+      return res.status(200).json({
         success: true,
         message: "No Data Found",
         data: serverResponse,
@@ -323,6 +321,31 @@ export const updateMatch = async (req, res) => {
       message: "User Updated Successfully",
       data: serverResponse[0],
     });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+export const Profile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usersResponse =
+      await sql`SELECT * from matches WHERE user_id = ${id}`;
+    if (usersResponse.count > 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Profile Fetched Successfully",
+        data: usersResponse,
+      });
+    } else {
+      return res.status(200).json({
+        success: true,
+        message: "No Profile Data",
+        data: usersResponse,
+      });
+    }
   } catch (error) {
     return res.status(500).json({
       error: error.message,

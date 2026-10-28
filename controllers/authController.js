@@ -1,23 +1,14 @@
-import { v4 as uuidv4 } from "uuid";
 import * as bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { sql } from "../dbConnect.js";
 
 export const Signup = async (req, res) => {
   try {
-    const { fullname, phone, password, countrycode } = req.body;
-    if (!fullname || !phone || !password || !countrycode) {
+    const { fullname, phone, password, email, gender, role } = req.body;
+    if (!fullname || !phone || !password || !email || !gender || !role) {
       return res.status(400).json({
         success: false,
-        message: fullname
-          ? phone
-            ? password
-              ? countrycode
-                ? ""
-                : "Country Code is required"
-              : "Password is required"
-            : "Phone is required"
-          : "Full name is required",
+        message: "Please enter all required fields",
       });
     }
 
@@ -29,17 +20,15 @@ export const Signup = async (req, res) => {
       }
     });
     if (!isUserExist) {
-      const id = uuidv4();
-      const createdat = new Date();
       const hashedPassword = bcrypt.hashSync(password, 10);
-      console.log(hashedPassword);
       const signupResponse =
-        await sql`INSERT INTO users(id, phone, fullname, password, countrycode, createdat) 
-      VALUES(${id}, ${phone}, ${fullname}, ${hashedPassword}, ${countrycode}, ${createdat}) RETURNING *`;
+        await sql`INSERT INTO users(phone, full_name, email, password_hash, gender, role) 
+      VALUES(${phone}, ${fullname}, ${email}, ${hashedPassword}, ${gender}, ${role}) RETURNING id, full_name, phone, email, gender, role `;
       if (signupResponse.count > 0) {
         return res.status(201).json({
           success: true,
           message: "User Created Successfully",
+          data: signupResponse[0],
         });
       }
     } else {
@@ -77,7 +66,10 @@ export const Signin = async (req, res) => {
         message: "Invalid Phone",
       });
     }
-    const isValidPassword = await bcrypt.compare(password, user[0].password);
+    const isValidPassword = await bcrypt.compare(
+      password,
+      user[0].password_hash,
+    );
     if (!isValidPassword) {
       return res.status(404).json({
         success: false,
@@ -86,7 +78,7 @@ export const Signin = async (req, res) => {
     }
     if (user.count > 0 && isValidPassword) {
       const accessToken = jwt.sign(
-        { phone: user[0].phone, password: user[0].password },
+        { phone: user[0].phone, password: user[0].password_hash },
         "accesstoken-secret-key",
         {
           expiresIn: "15m",
@@ -94,7 +86,7 @@ export const Signin = async (req, res) => {
         },
       );
       const refreshToken = jwt.sign(
-        { phone: user[0].phone, password: user[0].password },
+        { phone: user[0].phone, password: user[0].password_hash },
         "refreshtoken-secret-key",
         {
           expiresIn: "7d",
@@ -113,9 +105,13 @@ export const Signin = async (req, res) => {
         path: "/",
         secure: false,
       });
+      const loginUser =
+        await sql`SELECT id, full_name, phone, email, gender, role FROM users
+        WHERE phone = ${phone}`;
       return res.status(200).json({
         success: true,
-        message: "Sign In Successfull",
+        message: "Sign In Successfully",
+        data: loginUser,
       });
     }
   } catch (error) {

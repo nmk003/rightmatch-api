@@ -7,6 +7,7 @@ import {
   getMatch,
   getMatches,
   updateMatch,
+  Profile,
 } from "../controllers/matchController.js";
 
 const router = express.Router();
@@ -21,5 +22,6 @@ router.put("/match/:id", updateMatch);
 router.post("/auth/signup", Signup);
 router.post("/auth/signin", Signin);
 router.get("/auth/users", Users);
+router.get("/profile/:id", Profile);
 
 export default router;
