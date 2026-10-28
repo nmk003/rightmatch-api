@@ -22,8 +22,8 @@ export const Signup = async (req, res) => {
     if (!isUserExist) {
       const hashedPassword = bcrypt.hashSync(password, 10);
       const signupResponse =
-        await sql`INSERT INTO users(phone, full_name, email, password_hash, gender, role) 
-      VALUES(${phone}, ${fullname}, ${email}, ${hashedPassword}, ${gender}, ${role}) RETURNING id, full_name, phone, email, gender, role `;
+        await sql`INSERT INTO users(phone, fullname, email, password_hash, gender, role) 
+      VALUES(${phone}, ${fullname}, ${email}, ${hashedPassword}, ${gender}, ${role}) RETURNING id, fullname, phone, email, gender, role `;
       if (signupResponse.count > 0) {
         return res.status(201).json({
           success: true,
