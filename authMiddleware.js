@@ -1,21 +1,36 @@
 import jwt from "jsonwebtoken";
+import { sql } from "./dbConnect.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.cookies["access-token"];
+    const token = req.cookies?.jwt;
     if (!token) {
+      return res.status(401).json({
+        message: "Token is not available",
+      });
+    }
+    const isAccessable = jwt.verify(token, "jwt-secret-key");
+    console.log(isAccessable, "isAccessable");
+
+    if (!isAccessable) {
       return res.status(401).json({
         message: "Access Denied",
       });
     }
-    const isAccessable = jwt.verify(token, "accesstoken-secret-key");
-    console.log(isAccessable);
-    if (isAccessable) {
-      next();
+    const user =
+      await sql`SELECT id, fullname, phone, email, gender, isactive FROM users WHERE id = ${isAccessable.id}`;
+    console.log(user, "user");
+    if (user.count === 0) {
+      return res.status(401).json({
+        message: "Access Denied",
+      });
     }
+    req.user = user[0];
+    next();
   } catch (error) {
-    return res.status(401).json({
-      message: "Invalid token",
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal Server Error",
     });
   }
 };

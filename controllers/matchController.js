@@ -1,6 +1,15 @@
 import { v4 as uuidv4 } from "uuid";
 import { sql } from "../dbConnect.js";
 import * as z from "zod";
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: "dmrigyou3",
+  api_key: "655435561719387",
+  api_secret: "f3eLHkyyasMnbjCembwbGpYPk10",
+  secure_distribution: "cloudinary.com",
+  upload_prefix: "https://api-eu.cloudinary.com",
+});
 
 const userSchema = z.object({
   firstname: z.string({ message: "Firstname is required" }).nonempty(),
@@ -219,8 +228,15 @@ export const getMatches = async (req, res) => {
     const { gender } = req.query;
     const _gen = gender === "male" ? "female" : "male";
 
-    const serverResponse =
-      await sql`SELECT * FROM matches where gender = ${_gen}`;
+    const serverResponse = await sql`SELECT
+          m.*,
+          EXISTS (
+              SELECT 1
+              FROM favorites f
+              WHERE f.profile_userid = m.user_id
+          ) AS "isLiked"
+      FROM matches m
+      WHERE gender = ${_gen}`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
         success: true,
@@ -348,6 +364,97 @@ export const Profile = async (req, res) => {
     }
   } catch (error) {
     return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+export const Favorite = async (req, res) => {
+  try {
+    const { profile_userid, isLiked, user_id, profile_id } = req.body;
+    const favoriteResponse = await sql`INSERT INTO favorites(
+    user_id,
+    profile_userid,
+    isLiked,
+    profile_id) VALUES(${user_id}, ${profile_userid}, ${isLiked}, ${profile_id}) RETURNING *`;
+    if (favoriteResponse.count > 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Favorite",
+        data: favoriteResponse,
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Something Went wrong",
+        data: favoriteResponse,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+export const Unfavorite = async (req, res) => {
+  try {
+    const { profile_userid, isLiked, user_id, profile_id } = req.body;
+    const favoriteResponse = await sql`UPDAT TABLE favorites(
+    SET isLike = ${isLiked}) 
+    WHERE profile_useid = ${profile_userid} AND user_id = ${user_id}`;
+    if (favoriteResponse.count > 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Favorite",
+        data: favoriteResponse,
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "Something Went wrong",
+        data: favoriteResponse,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+const uploadIntoCloudinary = async (file) => {
+  return cloudinary.uploader.upload(file, {
+    folder: "matches/profiles",
+    resource_type: "image",
+  });
+};
+export const UploadPhotos = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+    // if (!req.files?.length > 0) {
+    //   return res.status(200).json({
+    //     message: "Please select the images",
+    //   });
+    // }
+
+    const result = await Promise.all(
+      req.files?.map((file) => uploadIntoCloudinary(file.path)),
+    );
+    const photos = result?.map((r) => {
+      return {
+        asset_id: r.asset_id,
+        url: r.url,
+      };
+    });
+    const _res = await sql`INSERT INTO photos(
+      user_id, photos) VALUES(${user_id}, ${photos}) RETURNING *`;
+    res.status(200).json({
+      success: true,
+      message: "Photos Uploaded Successfully",
+      data: _res,
+    });
+  } catch (error) {
+    res.status(500).json({
       error: error.message,
     });
   }
