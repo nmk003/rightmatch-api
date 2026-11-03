@@ -64,6 +64,11 @@ export const Signin = async (req, res) => {
           : "Phone is required",
       });
     }
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: "Password must be at least 6 characters",
+      });
+    }
     const user = await sql`SELECT * FROM users
         WHERE phone = ${phone}`;
     if (user.count === 0) {
