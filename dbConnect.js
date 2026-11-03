@@ -1,24 +1,24 @@
 import postgres from "postgres";
-// import dotenv from "dotenv";
-// dotenv.config();
+import dotenv from "dotenv";
+dotenv.config();
 
 // Render dB
 export const sql = postgres({
-  host: "dpg-dba7juvbtjjs73e43f2g-a.oregon-postgres.render.com",
-  port: 5432,
-  database: "rightmatch_db",
-  username: "rightmatch_db_user",
-  password: "V75smDRrNQ5rHZOGsoMGVd1LGVmhw0EQ",
+  host: process.env.PROD_HOST,
+  port: process.env.PROD_PORT,
+  database: process.env.PROD_DATABASE,
+  username: process.env.PROD_USERNAME,
+  password: process.env.PROD_PASSWORD,
   ssl: "require",
 });
 
 //Local DB
 // export const sql = postgres({
-//   host: "localhost",
-//   port: 5432,
-//   database: "rightmatch",
-//   username: "postgres",
-//   password: "postgres",
+//   host: process.env.DEV_HOST,
+//   port: process.env.DEV_PORT,
+//   database: process.env.DEV_DATABASE,
+//   username: process.env.DEV_USERNAME,
+//   password: process.env.DEV_PASSWORD,
 // });
 
 export const databseConnect = async () => {

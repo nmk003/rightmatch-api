@@ -27,11 +27,11 @@ app.use(
   }),
 );
 
-const PORT = 5045;
+const _PORT = process.env.PORT;
 
 app.use("/api", router);
 
-app.listen(PORT, async () => {
+app.listen(_PORT, async () => {
   await databseConnect();
-  console.log(`Server is Ruuning on PORT: ${PORT}`);
+  console.log(`Server is Ruuning on PORT: ${_PORT}`);
 });
