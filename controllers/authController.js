@@ -120,7 +120,7 @@ export const Users = async (req, res) => {
 
 export const Signout = async (req, res) => {
   try {
-    res.cookie("jwt", "", { maxAge: 0 });
+    res.cookie("jwtToken", "", { maxAge: 0 });
     return res.status(200).json({
       message: "Sign Out Successfully",
     });

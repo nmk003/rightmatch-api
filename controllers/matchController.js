@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import { sql } from "../dbConnect.js";
 import * as z from "zod";
 import { v2 as cloudinary } from "cloudinary";
@@ -11,69 +10,38 @@ cloudinary.config({
   upload_prefix: "https://api-eu.cloudinary.com",
 });
 
-const userSchema = z.object({
+const matchSchema = z.object({
   firstname: z.string({ message: "Firstname is required" }).nonempty(),
   surname: z.string({ message: "Surname is required" }).nonempty(),
+  height: z.string({ message: "Height is required" }).nonempty(),
   dob: z.string({ message: "DOB is required" }).nonempty(),
-  gender: z.string({ message: "Gender is required" }).min(1).nonempty(),
+  gender: z.string({ message: "Gender is required" }).nonempty(),
   zodaicsign: z.string({ message: "Zodaic Sign is required" }).nonempty(),
   star: z.string({ message: "Star is required" }).nonempty(),
+  religion: z.string({ message: "Religion is required" }).nonempty(),
   gothram: z.string({ message: "Gothram is required" }).nonempty(),
   caste: z.string({ message: "Caste is required" }).nonempty(),
   subcaste: z.string({ message: "Subcaste is required" }).nonempty(),
   occupation: z.string({ message: "Occupation is required" }).nonempty(),
   company: z.string({ message: "Company is required" }).nonempty(),
   salary: z.string({ message: "Salary is required" }).nonempty(),
+  currency: z.string({ message: "Currency is required" }).min(1).nonempty(),
+  mothername: z.string({ message: "Mother Name is required" }).nonempty(),
+  worklocation: z.string({ message: "Work Location is required" }).nonempty(),
+  mothername: z.string({ message: "Mother Name is required" }).nonempty(),
+  motheroccupation: z
+    .string({ message: "Mother Occupation is required" })
+    .nonempty(),
+  fathername: z.string({ message: "Father Name is required" }).nonempty(),
+  fatheroccupation: z
+    .string({ message: "Father Occupation is required" })
+    .nonempty(),
 });
 
-const updateUserSchema = z
-  .object({
-    firstname: z.string().optional(),
-    lastname: z.string().optional(),
-    surname: z.string().optional(),
-    dob: z.string().optional(),
-    gender: z.string().optional(),
-    zodaicsign: z.string().optional(),
-    star: z.string().optional(),
-    religion: z.string().optional(),
-    gothram: z.string().optional(),
-    caste: z.string().optional(),
-    subcaste: z.string().optional(),
-    occupation: z.string().optional(),
-    company: z.string().optional(),
-    salary: z.number().nonnegative().optional(),
-    currency: z.string().optional(),
-    mothername: z.string().optional(),
-    motheroccupation: z.string().optional(),
-    fathername: z.string().optional(),
-    fatheroccupation: z.string().optional(),
-    sisters: z.string().optional(),
-    numofsisters: z.number().optional(),
-    marriedsisters: z.number().optional(),
-    brothers: z.string().optional(),
-    numofbrothers: z.number().optional(),
-    marriedbrothers: z.number().optional(),
-    currentaddress: z.string().optional(),
-    iscurrentaspermanent: z.boolean().optional(),
-    permanentaddress: z.string().optional(),
-  })
-  .strict();
-
-const isValidDob = (dob) => {
-  if (typeof dob !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
-    return false;
-  }
-
-  const parsedDob = new Date(`${dob}T00:00:00.000Z`);
-  return (
-    !Number.isNaN(parsedDob.getTime()) &&
-    parsedDob.toISOString().slice(0, 10) === dob
-  );
-};
-
 export const createMatch = async (req, res) => {
+  console.log(matchSchema.safeParse(req.body).success);
   try {
-    if (userSchema.safeParse(req.body).success) {
+    if (matchSchema.safeParse(req.body).success) {
       let year = new Date().getFullYear();
       let month = new Date().getMonth() + 1;
       let date = new Date().getDate();
@@ -86,12 +54,12 @@ export const createMatch = async (req, res) => {
       const usersServerResponse = await sql`SELECT * FROM matches
       WHERE created_at >= ${Number(formatDate)}`;
 
-      const profileid = `RM${year}${month}${date}${usersServerResponse.count + 1}`;
+      const profileid = `RM${year}${month}${date}${usersServerResponse.count}`;
 
       const {
         userid,
         firstname,
-        lastname,
+        lastname = null,
         surname,
         dob,
         gender,
@@ -99,7 +67,7 @@ export const createMatch = async (req, res) => {
         star,
         religion,
         gothram,
-        padam,
+        padam = null,
         caste,
         subcaste,
         occupation,
@@ -111,25 +79,18 @@ export const createMatch = async (req, res) => {
         motheroccupation,
         fathername,
         fatheroccupation,
-        sisters,
-        numofsisters,
-        marriedsisters,
-        brothers,
-        numofbrothers,
-        marriedbrothers,
-        currentaddress,
-        iscurrentaspermanent,
-        permanentaddress,
-        isactive,
-        color,
+        sisters = null,
+        numofsisters = null,
+        marriedsisters = null,
+        brothers = null,
+        numofbrothers = null,
+        marriedbrothers = null,
+        currentaddress = null,
+        iscurrentaspermanent = false,
+        permanentaddress = null,
+        color = null,
         height,
       } = req.body;
-
-      if (!isValidDob(dob)) {
-        return res.status(400).json({
-          error: "dob must be a valid date in YYYY-MM-DD format",
-        });
-      }
 
       const serverReponse = await sql`INSERT INTO matches(
       user_id,
@@ -163,7 +124,6 @@ export const createMatch = async (req, res) => {
       brothers,
       numofbrothers,
       marriedbrothers,
-      isactive,
       currentaddress,
       permanentaddress,
       iscurrentaspermanent) VALUES(
@@ -173,7 +133,7 @@ export const createMatch = async (req, res) => {
        ${lastname}, 
        ${surname},
        ${gender},
-       ${dob},
+       ${new Date(`${dob}T00:00:00.000Z`).toISOString()},
        ${color},
        ${height},
        ${zodaicsign},
@@ -198,27 +158,29 @@ export const createMatch = async (req, res) => {
        ${brothers},
        ${numofbrothers},
        ${marriedbrothers},
-       ${isactive},
        ${currentaddress}, 
-       ${iscurrentaspermanent ? permanentaddress : currentaddress},
+       ${iscurrentaspermanent ? currentaddress : permanentaddress},
        ${iscurrentaspermanent}) RETURNING (profile_id)`;
 
       if (serverReponse.count > 0) {
         return res.status(201).json({
-          success: true,
           message: "User Created Successfully",
           profileid: serverReponse[0].profile_id,
+        });
+      } else {
+        return res.status(409).json({
+          message: "User Id shouldnot be duplicate",
         });
       }
     } else {
       return res.status(400).json({
-        success: false,
-        message: userSchema.safeParse(req.body).error.message,
+        message: "Please provide all the required fields",
       });
     }
   } catch (error) {
+    console.log(error, "Error creating match");
     return res.status(500).json({
-      error: error.message,
+      message: "Internal Server Error",
     });
   }
 };
@@ -230,11 +192,12 @@ export const getMatches = async (req, res) => {
 
     const serverResponse = await sql`SELECT
           m.*,
-          EXISTS (
+          (
               SELECT 1
               FROM favorites f
               WHERE f.profile_userid = m.user_id
-          ) AS "isLiked"
+          ) AS "isLiked",
+  (SELECT photos FROM photos p WHERE p.user_id = m.user_id)
       FROM matches m
       WHERE gender = ${_gen}`;
     if (serverResponse.count > 0) {
@@ -257,31 +220,30 @@ export const getMatches = async (req, res) => {
 };
 
 export const getMatch = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
     if (!id) {
       return res.status(400).json({
-        success: false,
-        message: "Please provide a valid id",
+        message: "Please provide valid id",
       });
     }
-    const serverResponse = await sql`SELECT * FROM matches where id = ${id}`;
-    if (serverResponse.count > 0) {
+    const profileResponse = await sql`
+    SELECT m.*, (SELECT photos from photos p 
+where p.user_id = m.user_id) as photos 
+FROM matches m
+WHERE user_id = ${id}`;
+    if (profileResponse.count > 0) {
       return res.status(200).json({
-        success: true,
-        data: serverResponse[0],
+        data: profileResponse[0],
       });
     } else {
-      return res.status(404).json({
-        success: true,
-        message: "No Data Found",
-        data: serverResponse,
+      return res.status(200).json({
+        data: null,
       });
     }
   } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-    });
+    console.log(error, "Error fetching profile");
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -337,31 +299,6 @@ export const updateMatch = async (req, res) => {
       message: "User Updated Successfully",
       data: serverResponse[0],
     });
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-    });
-  }
-};
-
-export const Profile = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const usersResponse =
-      await sql`SELECT * from matches WHERE user_id = ${id}`;
-    if (usersResponse.count > 0) {
-      return res.status(200).json({
-        success: true,
-        message: "Profile Fetched Successfully",
-        data: usersResponse,
-      });
-    } else {
-      return res.status(200).json({
-        success: true,
-        message: "No Profile Data",
-        data: usersResponse,
-      });
-    }
   } catch (error) {
     return res.status(500).json({
       error: error.message,
@@ -429,33 +366,34 @@ const uploadIntoCloudinary = async (file) => {
   });
 };
 export const UploadPhotos = async (req, res) => {
+  console.log(req.body);
   try {
-    const { user_id } = req.body;
-    // if (!req.files?.length > 0) {
-    //   return res.status(200).json({
-    //     message: "Please select the images",
-    //   });
-    // }
+    const { userid, photos } = req.body;
+    if (!photos.length > 0) {
+      return res.status(400).json({
+        message: "Please select the images",
+      });
+    }
 
     const result = await Promise.all(
-      req.files?.map((file) => uploadIntoCloudinary(file.path)),
+      photos?.map((path) => uploadIntoCloudinary(path)),
     );
-    const photos = result?.map((r) => {
+    const _photos = result?.map((r) => {
       return {
         asset_id: r.asset_id,
         url: r.url,
       };
     });
     const _res = await sql`INSERT INTO photos(
-      user_id, photos) VALUES(${user_id}, ${photos}) RETURNING *`;
+      user_id, photos) VALUES(${userid}, ${_photos}) RETURNING *`;
     res.status(200).json({
-      success: true,
       message: "Photos Uploaded Successfully",
       data: _res,
     });
   } catch (error) {
+    console.log(error, "Photos uploading error");
     res.status(500).json({
-      error: error.message,
+      message: "Internal Server Error",
     });
   }
 };

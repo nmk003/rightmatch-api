@@ -3,14 +3,13 @@ import { sql } from "./dbConnect.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.cookies?.jwt;
+    const token = req.cookies?.jwtToken;
     if (!token) {
       return res.status(401).json({
         message: "Token is not available",
       });
     }
     const isAccessable = jwt.verify(token, "jwt-secret-key");
-    console.log(isAccessable, "isAccessable");
 
     if (!isAccessable) {
       return res.status(401).json({

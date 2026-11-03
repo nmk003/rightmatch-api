@@ -11,7 +11,8 @@ dotenv.config();
 
 const app = express();
 app.use(cookieParser());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 const allowedOrigins = [
   "http://localhost:5173",

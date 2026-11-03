@@ -3,23 +3,23 @@ import postgres from "postgres";
 // dotenv.config();
 
 // Render dB
-// export const sql = postgres({
-//   host: "dpg-dba7juvbtjjs73e43f2g-a.oregon-postgres.render.com",
-//   port: 5432,
-//   database: "rightmatch_db",
-//   username: "rightmatch_db_user",
-//   password: "V75smDRrNQ5rHZOGsoMGVd1LGVmhw0EQ",
-//   ssl: "require",
-// });
+export const sql = postgres({
+  host: "dpg-dba7juvbtjjs73e43f2g-a.oregon-postgres.render.com",
+  port: 5432,
+  database: "rightmatch_db",
+  username: "rightmatch_db_user",
+  password: "V75smDRrNQ5rHZOGsoMGVd1LGVmhw0EQ",
+  ssl: "require",
+});
 
 //Local DB
-export const sql = postgres({
-  host: "localhost",
-  port: 5432,
-  database: "rightmatch",
-  username: "postgres",
-  password: "postgres",
-});
+// export const sql = postgres({
+//   host: "localhost",
+//   port: 5432,
+//   database: "rightmatch",
+//   username: "postgres",
+//   password: "postgres",
+// });
 
 export const databseConnect = async () => {
   try {
