@@ -18,7 +18,6 @@ export const authMiddleware = async (req, res, next) => {
     }
     const user =
       await sql`SELECT id, fullname, phone, email, gender, isactive FROM users WHERE id = ${isAccessable.id}`;
-    console.log(user, "user");
     if (user.count === 0) {
       return res.status(401).json({
         message: "Access Denied",

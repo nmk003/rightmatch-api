@@ -8,7 +8,7 @@ import { databseConnect } from "./dbConnect.js";
 import router from "./routers/routes.js";
 
 dotenv.config();
-
+console.log(process.env.NODE_ENV);
 const app = express();
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: "50mb" }));

@@ -1,7 +1,7 @@
 import * as bcrypt from "bcrypt";
 
 import { sql } from "../dbConnect.js";
-import { generateJWTToken } from "../utils.js";
+import { authCookieOptions, generateJWTToken } from "../utils.js";
 
 export const Signup = async (req, res) => {
   try {
@@ -125,7 +125,7 @@ export const Users = async (req, res) => {
 
 export const Signout = async (req, res) => {
   try {
-    res.cookie("jwtToken", "", { maxAge: 0 });
+    res.clearCookie("jwtToken", authCookieOptions);
     return res.status(200).json({
       message: "Sign Out Successfully",
     });
