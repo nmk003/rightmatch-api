@@ -5,7 +5,7 @@ export const Profile = async (req, res) => {
   try {
     const profileResponse = await sql`SELECT *, P.photos FROM matches as M
         LEFT JOIN photos as P
-       ON M.user_id = P.user_id`;
+       ON M.userid = P.userid`;
     if (profileResponse.count > 0) {
       return res.status(200).json({
         data: profileResponse[0],

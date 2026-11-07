@@ -16,6 +16,8 @@ import {
   Favorite,
   Unfavorite,
   UploadPhotos,
+  getFavorites,
+  ProfileStatus,
 } from "../controllers/matchController.js";
 import { Profile } from "../controllers/profileController.js";
 
@@ -34,14 +36,16 @@ router.post("/otp/verify/:otp", authMiddleware, verifyOTP);
 
 // Profile Routes
 router.get("/profile/:id", authMiddleware, Profile);
+router.put("/profile/status", authMiddleware, ProfileStatus);
 
 // Match Routes
 router.post("/matches", authMiddleware, createMatch);
 router.get("/matches", authMiddleware, getMatches);
+router.get("/favorites/:userid", authMiddleware, getFavorites);
 router.get("/match/:id", authMiddleware, getMatch);
 router.put("/match/:id", authMiddleware, updateMatch);
 router.post("/match/favorite", authMiddleware, Favorite);
-router.put("/match/unfavorite", authMiddleware, Unfavorite);
+router.delete("/match/unfavorite/:userid", authMiddleware, Unfavorite);
 router.post("/match/upload", authMiddleware, UploadPhotos);
 
 export default router;

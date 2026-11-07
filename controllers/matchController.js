@@ -29,13 +29,7 @@ const matchSchema = z.object({
   mothername: z.string({ message: "Mother Name is required" }).nonempty(),
   worklocation: z.string({ message: "Work Location is required" }).nonempty(),
   mothername: z.string({ message: "Mother Name is required" }).nonempty(),
-  motheroccupation: z
-    .string({ message: "Mother Occupation is required" })
-    .nonempty(),
   fathername: z.string({ message: "Father Name is required" }).nonempty(),
-  fatheroccupation: z
-    .string({ message: "Father Occupation is required" })
-    .nonempty(),
 });
 
 export const createMatch = async (req, res) => {
@@ -93,7 +87,7 @@ export const createMatch = async (req, res) => {
       } = req.body;
 
       const serverReponse = await sql`INSERT INTO matches(
-      user_id,
+      userid,
       profile_id,
       firstname, 
       lastname, 
@@ -195,11 +189,11 @@ export const getMatches = async (req, res) => {
           (
               SELECT 1
               FROM favorites f
-              WHERE f.profile_userid = m.user_id
-          ) AS "isLiked",
-  (SELECT photos FROM photos p WHERE p.user_id = m.user_id)
+              WHERE f.profile_userid = m.userid
+          ) AS "isliked",
+  (SELECT photos FROM photos p WHERE p.userid = m.userid)
       FROM matches m
-      WHERE gender = ${_gen}`;
+      WHERE gender = ${_gen} AND isactive = true`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
         success: true,
@@ -229,9 +223,9 @@ export const getMatch = async (req, res) => {
     }
     const profileResponse = await sql`
     SELECT m.*, (SELECT photos from photos p 
-where p.user_id = m.user_id) as photos 
+where p.userid = m.userid) as photos 
 FROM matches m
-WHERE user_id = ${id}`;
+WHERE userid = ${id}`;
     if (profileResponse.count > 0) {
       return res.status(200).json({
         data: profileResponse[0],
@@ -308,12 +302,12 @@ export const updateMatch = async (req, res) => {
 
 export const Favorite = async (req, res) => {
   try {
-    const { profile_userid, isLiked, user_id, profile_id } = req.body;
+    const { profile_userid, isLiked, userid, profile_id } = req.body;
     const favoriteResponse = await sql`INSERT INTO favorites(
-    user_id,
+    userid,
     profile_userid,
     isLiked,
-    profile_id) VALUES(${user_id}, ${profile_userid}, ${isLiked}, ${profile_id}) RETURNING *`;
+    profile_id) VALUES(${userid}, ${profile_userid}, ${isLiked}, ${profile_id}) RETURNING *`;
     if (favoriteResponse.count > 0) {
       return res.status(200).json({
         success: true,
@@ -335,21 +329,16 @@ export const Favorite = async (req, res) => {
 };
 
 export const Unfavorite = async (req, res) => {
+  const { userid } = req.params;
   try {
-    const { profile_userid, isLiked, user_id, profile_id } = req.body;
-    const favoriteResponse = await sql`UPDAT TABLE favorites(
-    SET isLike = ${isLiked}) 
-    WHERE profile_useid = ${profile_userid} AND user_id = ${user_id}`;
+    const favoriteResponse = await sql`DELETE FROM favorites
+    WHERE userid = ${userid}`;
     if (favoriteResponse.count > 0) {
       return res.status(200).json({
-        success: true,
-        message: "Favorite",
         data: favoriteResponse,
       });
     } else {
       return res.status(404).json({
-        success: false,
-        message: "Something Went wrong",
         data: favoriteResponse,
       });
     }
@@ -359,6 +348,32 @@ export const Unfavorite = async (req, res) => {
     });
   }
 };
+
+export const getFavorites = async (req, res) => {
+  const { userid } = req.params;
+  try {
+    const matches = await sql`select m.*, f.isLiked, p.photos from favorites f
+left join matches m on m.userid = f.profile_userid
+left join photos p on p.userid = m.userid
+where f.userid = ${userid}`;
+
+    if (matches.count > 0) {
+      return res.status(200).json({
+        data: matches,
+      });
+    } else {
+      return res.status(200).json({
+        data: matches,
+      });
+    }
+  } catch (error) {
+    console.log(error, "Get Favorites Error");
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
 const uploadIntoCloudinary = async (file) => {
   return cloudinary.uploader.upload(file, {
     folder: "matches/profiles",
@@ -385,7 +400,7 @@ export const UploadPhotos = async (req, res) => {
       };
     });
     const _res = await sql`INSERT INTO photos(
-      user_id, photos) VALUES(${userid}, ${_photos}) RETURNING *`;
+      userid, photos) VALUES(${userid}, ${_photos}) RETURNING *`;
     res.status(200).json({
       message: "Photos Uploaded Successfully",
       data: _res,
@@ -394,6 +409,23 @@ export const UploadPhotos = async (req, res) => {
     console.log(error, "Photos uploading error");
     res.status(500).json({
       message: "Internal Server Error",
+    });
+  }
+};
+
+export const ProfileStatus = async (req, res) => {
+  const { id, status } = req.body;
+  try {
+    const response = await sql`UPDATE matches
+    SET isactive = ${status}
+    WHERE userid = ${id}`;
+
+    return res.status(200).json({
+      message: response,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
     });
   }
 };
