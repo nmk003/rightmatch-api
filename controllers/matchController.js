@@ -193,7 +193,7 @@ export const getMatches = async (req, res) => {
           ) AS "isliked",
   (SELECT photos FROM photos p WHERE p.userid = m.userid)
       FROM matches m
-      WHERE gender = ${_gen} AND isactive = true`;
+      WHERE gender = ${_gen}`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
         success: true,
