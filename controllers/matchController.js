@@ -396,7 +396,7 @@ export const UploadPhotos = async (req, res) => {
     const _photos = result?.map((r) => {
       return {
         asset_id: r.asset_id,
-        url: r.url,
+        url: r.secure_url,
       };
     });
     const _res = await sql`INSERT INTO photos(
