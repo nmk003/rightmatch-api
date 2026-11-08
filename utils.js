@@ -9,6 +9,7 @@ export const authCookieOptions = {
   path: "/",
   sameSite: isProduction ? "none" : "lax",
   secure: isProduction,
+  partitioned: isProduction,
 };
 
 export const generateJWTToken = (id, res) => {
