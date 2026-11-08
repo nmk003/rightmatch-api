@@ -8,11 +8,7 @@ import { databseConnect } from "./dbConnect.js";
 import router from "./routers/routes.js";
 
 dotenv.config();
-console.log(process.env.NODE_ENV);
 const app = express();
-app.use(cookieParser());
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -23,10 +19,12 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
-
+app.use(express.json());
+app.use(cookieParser());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 const _PORT = process.env.PORT;
 
 app.use("/api", router);
