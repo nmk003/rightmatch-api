@@ -18,6 +18,7 @@ import {
   UploadPhotos,
   getFavorites,
   ProfileStatus,
+  ContactView,
 } from "../controllers/matchController.js";
 import { Profile } from "../controllers/profileController.js";
 
@@ -45,7 +46,12 @@ router.get("/favorites/:userid", authMiddleware, getFavorites);
 router.get("/match/:id", authMiddleware, getMatch);
 router.put("/match/:id", authMiddleware, updateMatch);
 router.post("/match/favorite", authMiddleware, Favorite);
-router.delete("/match/unfavorite/:userid", authMiddleware, Unfavorite);
+router.delete(
+  "/match/unfavorite/:userid/:profile_userid",
+  authMiddleware,
+  Unfavorite,
+);
 router.post("/match/upload", authMiddleware, UploadPhotos);
+router.post("/match/contactview", authMiddleware, ContactView);
 
 export default router;

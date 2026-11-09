@@ -181,18 +181,15 @@ export const createMatch = async (req, res) => {
 
 export const getMatches = async (req, res) => {
   try {
-    const { gender } = req.query;
+    const { gender, id } = req.query;
+    console.log(req.query);
     const _gen = gender === "male" ? "female" : "male";
 
-    const serverResponse = await sql`SELECT
-          m.*,
-          (
-              SELECT 1
-              FROM favorites f
-              WHERE f.profile_userid = m.userid
-          ) AS "isliked",
-  (SELECT photos FROM photos p WHERE p.userid = m.userid)
-      FROM matches m
+    const serverResponse = await sql`
+SELECT m.*, 
+(SELECT isliked FROM favorites f WHERE f.profile_userid = m.userid AND f.userid = ${id}),
+(SELECT photos FROM photos p WHERE p.userid = m.userid)
+FROM matches m
       WHERE gender = ${_gen}`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
@@ -222,10 +219,10 @@ export const getMatch = async (req, res) => {
       });
     }
     const profileResponse = await sql`
-    SELECT m.*, (SELECT photos from photos p 
-where p.userid = m.userid) as photos 
-FROM matches m
-WHERE userid = ${id}`;
+SELECT m.*, p.photos, c.iscontactviewed from matches m
+    LEFT JOIN photos p ON p.userid = m.userid
+    LEFT JOIN contactsviewed c ON c.profile_userid = m.userid
+WHERE m.userid = ${id}`;
     if (profileResponse.count > 0) {
       return res.status(200).json({
         data: profileResponse[0],
@@ -329,10 +326,10 @@ export const Favorite = async (req, res) => {
 };
 
 export const Unfavorite = async (req, res) => {
-  const { userid } = req.params;
+  const { userid, profile_userid } = req.params;
   try {
     const favoriteResponse = await sql`DELETE FROM favorites
-    WHERE userid = ${userid}`;
+    WHERE userid = ${userid} AND profile_userid = ${profile_userid}`;
     if (favoriteResponse.count > 0) {
       return res.status(200).json({
         data: favoriteResponse,
@@ -423,6 +420,26 @@ export const ProfileStatus = async (req, res) => {
     return res.status(200).json({
       message: response,
     });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const ContactView = async (req, res) => {
+  const { userid, profile_userid } = req.body;
+  try {
+    const response = await sql`INSERT INTO contactsviewed(
+    userid,
+    profile_userid)
+    VALUES(${userid}, ${profile_userid}) RETURNING iscontactviewed`;
+
+    if (response.count > 0) {
+      return res.status(200).json({
+        status: response[0].iscontactviewed,
+      });
+    }
   } catch (error) {
     return res.status(500).json({
       message: "Internal server error",
