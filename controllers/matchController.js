@@ -127,7 +127,7 @@ export const createMatch = async (req, res) => {
        ${lastname}, 
        ${surname},
        ${gender},
-       ${new Date(`${dob}T00:00:00.000Z`).toISOString()},
+       ${dob},
        ${color},
        ${height},
        ${zodaicsign},
@@ -180,17 +180,16 @@ export const createMatch = async (req, res) => {
 };
 
 export const getMatches = async (req, res) => {
+  const { gender, id } = req.query;
   try {
-    const { gender, id } = req.query;
-    console.log(req.query);
     const _gen = gender === "male" ? "female" : "male";
 
     const serverResponse = await sql`
-SELECT m.*, 
-(SELECT isliked FROM favorites f WHERE f.profile_userid = m.userid AND f.userid = ${id}),
-(SELECT photos FROM photos p WHERE p.userid = m.userid)
-FROM matches m
-      WHERE gender = ${_gen}`;
+    SELECT m.*,
+    (SELECT isliked FROM favorites f WHERE f.profile_userid = m.userid AND f.userid = ${id}),
+    (SELECT photos FROM photos p WHERE p.userid = m.userid)
+    FROM matches m
+          WHERE gender = ${_gen}`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
         success: true,
@@ -248,15 +247,48 @@ export const updateMatch = async (req, res) => {
       });
     }
 
-    const parsedBody = updateUserSchema.safeParse(req.body);
-    if (!parsedBody.success) {
-      return res.status(400).json({
-        success: false,
-        message: parsedBody.error.message,
-      });
+    const updatableFields = new Set([
+      "firstname",
+      "lastname",
+      "surname",
+      "dob",
+      "gender",
+      "zodaicsign",
+      "star",
+      "religion",
+      "gothram",
+      "padam",
+      "caste",
+      "subcaste",
+      "occupation",
+      "company",
+      "salary",
+      "currency",
+      "mothername",
+      "worklocation",
+      "motheroccupation",
+      "fathername",
+      "fatheroccupation",
+      "sisters",
+      "numofsisters",
+      "marriedsisters",
+      "brothers",
+      "numofbrothers",
+      "marriedbrothers",
+      "currentaddress",
+      "iscurrentaspermanent",
+      "permanentaddress",
+      "color",
+      "height",
+    ]);
+
+    let updates = {};
+    for (let [key, value] of Object.entries(req.body)) {
+      if (updatableFields.has(key)) {
+        updates[key] = value;
+      }
     }
 
-    const updates = parsedBody.data;
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
         success: false,
@@ -264,17 +296,10 @@ export const updateMatch = async (req, res) => {
       });
     }
 
-    if (updates.dob !== undefined && !isValidDob(updates.dob)) {
-      return res.status(400).json({
-        success: false,
-        message: "dob must be a valid date in YYYY-MM-DD format",
-      });
-    }
-
     const serverResponse = await sql`
       UPDATE matches
       SET ${sql(updates)}
-      WHERE id = ${id}
+      WHERE userid = ${id}
       RETURNING *
     `;
 
