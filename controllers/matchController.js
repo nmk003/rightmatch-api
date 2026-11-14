@@ -185,10 +185,9 @@ export const getMatches = async (req, res) => {
     const _gen = gender === "male" ? "female" : "male";
 
     const serverResponse = await sql`
-    SELECT m.*,
-    (SELECT isliked FROM favorites f WHERE f.profile_userid = m.userid AND f.userid = ${id}),
-    (SELECT photos FROM photos p WHERE p.userid = m.userid)
-    FROM matches m
+    SELECT m.*, f.isliked, p.photos FROM matches m
+    LEFT JOIN favorites f ON f.profile_userid = m.userid AND f.userid = ${id}
+    LEFT JOIN photos p ON p.userid = m.userid
           WHERE gender = ${_gen}`;
     if (serverResponse.count > 0) {
       return res.status(200).json({
@@ -413,11 +412,10 @@ export const UploadPhotos = async (req, res) => {
     }
 
     const result = await Promise.all(
-      photos?.map((path) => uploadIntoCloudinary(path)),
+      photos?.map((file) => uploadIntoCloudinary(file.url)),
     );
     const _photos = result?.map((r) => {
       return {
-        asset_id: r.asset_id,
         url: r.secure_url,
       };
     });
